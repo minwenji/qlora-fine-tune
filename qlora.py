@@ -64,14 +64,14 @@ class DataArguments:
         default=1024, metadata={"help": "Size of validation dataset."}
     )
     max_train_samples: Optional[int] = field(
-        default=None,
+        default=1024,
         metadata={
             "help": "For debugging purposes or quicker training, truncate the number of training examples to this "
             "value if set."
         },
     )
     max_eval_samples: Optional[int] = field(
-        default=None,
+        default=1024,
         metadata={
             "help": "For debugging purposes or quicker training, truncate the number of evaluation examples to this "
             "value if set."
@@ -82,7 +82,7 @@ class DataArguments:
         metadata={"help": "Maximum source sequence length. Sequences will be right padded (and possibly truncated)."},
     )
     target_max_len: int = field(
-        default=1024,
+        default=512,
         metadata={"help": "Maximum target sequence length. Sequences will be right padded (and possibly truncated)."},
     )
     dataset: str = field(
@@ -265,7 +265,7 @@ def get_accelerate_model(args, checkpoint_dir):
         args.model_name_or_path,
         load_in_4bit=args.bits == 4,
         load_in_8bit=args.bits == 8,
-        device_map='auto',
+        # device_map='auto',
         max_memory=max_memory,
         quantization_config=BitsAndBytesConfig(
             load_in_4bit=args.bits == 4,
