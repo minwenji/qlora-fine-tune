@@ -1,16 +1,32 @@
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--model_name', default='prajjwal1/bert-tiny')
+parser.add_argument('--adapters_path', default='./output/checkpoint-10000/adapter_model')
+parser.add_argument('--bits', default=4)
+parser.add_argument('--bf16', action='store_true')
+parser.add_argument('--fp16', action='store_true', default=True)
+
+args = parser.parse_args()
+
+# debug
+# print(args)
+# exit(0)
+
 import torch
-from peft import PeftModel    
+from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer, LlamaTokenizer, StoppingCriteria, StoppingCriteriaList, TextIteratorStreamer
 
-model_name = "TheBloke/wizardLM-13B-1.0-fp16"
-adapters_name = './output/checkpoint-2250/adapter_model'
+model_name = args.model_name
+adapters_name = args.adapters_path
+torch_dtype=(torch.float32 if args.fp16 else (torch.bfloat16 if args.bf16 else torch.float32))
 
 print(f"Starting to load the model {model_name} into memory")
 
 m = AutoModelForCausalLM.from_pretrained(
     model_name,
-    load_in_4bit=True,
-    torch_dtype=torch.bfloat16,
+    load_in_4bit=args.bits==4,
+    torch_dtype=torch_dtype,
     device_map={"":0}
 )
 m = PeftModel.from_pretrained(m, adapters_name)
