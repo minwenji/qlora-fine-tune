@@ -27,8 +27,7 @@ m = AutoModelForCausalLM.from_pretrained(
     model_name,
     load_in_4bit=args.bits==4,
     torch_dtype=torch_dtype,
-    trust_remote_code=True
-    # device_map={"":0}
+    device_map={"":0}
 )
 m = PeftModel.from_pretrained(m, adapters_name)
 
