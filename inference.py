@@ -1,7 +1,7 @@
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model_name', default='prajjwal1/bert-tiny')
+parser.add_argument('--model_name', default='meta-llama/Llama-2-7b-chat')
 parser.add_argument('--adapters_path', default='./output/checkpoint-10000/adapter_model')
 parser.add_argument('--bits', default=4)
 parser.add_argument('--bf16', action='store_true')

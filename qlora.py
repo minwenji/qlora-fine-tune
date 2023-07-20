@@ -51,7 +51,7 @@ DEFAULT_PAD_TOKEN = "[PAD]"
 @dataclass
 class ModelArguments:
     model_name_or_path: Optional[str] = field(
-        default="prajjwal1/bert-tiny"
+        default="meta-llama/Llama-2-7b-chat"
     )
     trust_remote_code: Optional[bool] = field(
         default=False,
