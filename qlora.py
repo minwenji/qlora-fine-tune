@@ -92,8 +92,12 @@ class DataArguments:
 
 @dataclass
 class TrainingArguments(transformers.Seq2SeqTrainingArguments):
-    cache_dir: Optional[str] = field(
-        default=None
+    peft_model_path: str = field(
+        default='./output/checkpoint-10000/adapter_model',
+        metadata={"help": 'The input dir for the peft model'}
+    )
+    cache_dir: str = field(
+        default='./cache'
     )
     train_on_source: Optional[bool] = field(
         default=False,
@@ -576,30 +580,7 @@ def get_last_checkpoint(checkpoint_dir):
         return checkpoint_dir, is_completed # checkpoint found!
     return None, False # first training
 
-def train():
-    hfparser = transformers.HfArgumentParser((
-        ModelArguments, DataArguments, TrainingArguments, GenerationArguments
-    ))
-    model_args, data_args, training_args, generation_args, extra_args = \
-        hfparser.parse_args_into_dataclasses(return_remaining_strings=True)
-    training_args.generation_config = transformers.GenerationConfig(**vars(generation_args))
-    args = argparse.Namespace(
-        **vars(model_args), **vars(data_args), **vars(training_args)
-    )
-    
-
-    checkpoint_dir, completed_training = get_last_checkpoint(args.output_dir)
-    if completed_training:
-        print('Detected that training was already completed!')
-
-    model = get_accelerate_model(args, checkpoint_dir)
-    training_args.skip_loading_checkpoint_weights=True
-
-    model.config.use_cache = False
-    print_trainable_parameters(args, model)
-    print('loaded model')
-    set_seed(args.seed)
-
+def get_tokenizer(args, model):
     # Tokenizer
     tokenizer = AutoTokenizer.from_pretrained(
         args.model_name_or_path,
@@ -616,7 +597,7 @@ def train():
     if isinstance(tokenizer, LlamaTokenizerFast):
         # LLaMA tokenizer may not have correct special tokens set.
         # Check and add them if missing to prevent them from being parsed into different tokens.
-        # Note that these are present in the vocabulary. 
+        # Note that these are present in the vocabulary.
         # Note also that `model.config.pad_token_id` is 0 which corresponds to `<unk>` token.
         if tokenizer.eos_token_id != model.config.eos_token_id or tokenizer.pad_token_id != model.config.pad_token_id or tokenizer.unk_token_id != model.config.unk_token_id:
             tokenizer.add_special_tokens(
@@ -626,6 +607,37 @@ def train():
                     "unk_token": tokenizer.convert_ids_to_tokens(model.config.pad_token_id),
                 }
             )
+
+    return tokenizer
+
+def get_arguments():
+    hfparser = transformers.HfArgumentParser((
+        ModelArguments, DataArguments, TrainingArguments, GenerationArguments
+    ))
+    model_args, data_args, training_args, generation_args, extra_args = \
+        hfparser.parse_args_into_dataclasses(return_remaining_strings=True)
+    training_args.generation_config = transformers.GenerationConfig(**vars(generation_args))
+    args = argparse.Namespace(
+        **vars(model_args), **vars(data_args), **vars(training_args)
+    )
+    return [args, model_args, data_args, training_args, generation_args, extra_args]
+
+def train():
+    args, model_args, data_args, training_args, generation_args, extra_args = get_arguments()
+
+    checkpoint_dir, completed_training = get_last_checkpoint(args.output_dir)
+    if completed_training:
+        print('Detected that training was already completed!')
+
+    model = get_accelerate_model(args, checkpoint_dir)
+    training_args.skip_loading_checkpoint_weights=True
+
+    model.config.use_cache = False
+    print_trainable_parameters(args, model)
+    print('loaded model')
+    set_seed(args.seed)
+
+    tokenizer = get_tokenizer(args, model)
 
     data_module = make_data_module(tokenizer=tokenizer, args=args)
     trainer = Seq2SeqTrainer(

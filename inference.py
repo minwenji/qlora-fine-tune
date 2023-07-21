@@ -1,24 +1,19 @@
-import argparse
+from qlora import get_tokenizer, get_arguments
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--model_name', default='meta-llama/Llama-2-7b-chat')
-parser.add_argument('--adapters_path', default='./output/checkpoint-10000/adapter_model')
-parser.add_argument('--bits', default=4)
-parser.add_argument('--bf16', action='store_true')
-parser.add_argument('--fp16', action='store_true', default=True)
-
-args = parser.parse_args()
-
+args, model_args, data_args, training_args, generation_args, extra_args = get_arguments()
 # debug
-# print(args)
+print('args')
+print(args)
+print('extra_args')
+print(extra_args)
 # exit(0)
 
 import torch
 from peft import PeftModel
-from transformers import AutoModelForCausalLM, AutoTokenizer, LlamaTokenizer, StoppingCriteria, StoppingCriteriaList, TextIteratorStreamer
+from transformers import AutoModelForCausalLM, StoppingCriteria, StoppingCriteriaList, TextIteratorStreamer
 
-model_name = args.model_name
-adapters_name = args.adapters_path
+model_name = args.model_name_or_path
+adapters_name = args.peft_model_path
 torch_dtype=(torch.float32 if args.fp16 else (torch.bfloat16 if args.bf16 else torch.float32))
 
 print(f"Starting to load the model {model_name} into memory")
@@ -29,9 +24,10 @@ m = AutoModelForCausalLM.from_pretrained(
     torch_dtype=torch_dtype,
     device_map={"":0}
 )
+
 m = PeftModel.from_pretrained(m, adapters_name)
 
-tok = LlamaTokenizer.from_pretrained(model_name)
+tok = get_tokenizer(args, m)
 tok.bos_token_id = 1
 
 stop_token_ids = [0]
@@ -176,7 +172,7 @@ with gr.Blocks(
 ) as demo:
     conversation_id = gr.State(get_uuid)
     gr.Markdown(
-        """<h1><center>Guanaco Demo</center></h1>
+        """<h1><center>Inference Demo</center></h1>
 """
     )
     chatbot = gr.Chatbot().style(height=500)
