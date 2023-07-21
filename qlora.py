@@ -280,7 +280,7 @@ def get_accelerate_model(args, checkpoint_dir):
             bnb_4bit_use_double_quant=args.double_quant,
             bnb_4bit_quant_type=args.quant_type # {'fp4', 'nf4'}
         ),
-        torch_dtype=(torch.float32 if args.fp16 else (torch.bfloat16 if args.bf16 else torch.float32)),
+        torch_dtype=(torch.float16 if args.fp16 else (torch.bfloat16 if args.bf16 else torch.float32)),
         trust_remote_code=args.trust_remote_code,
     )
     if compute_dtype == torch.float16 and args.bits == 4:
