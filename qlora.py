@@ -93,7 +93,7 @@ class DataArguments:
 @dataclass
 class TrainingArguments(transformers.Seq2SeqTrainingArguments):
     peft_model_path: str = field(
-        default='./output/checkpoint-10000/adapter_model',
+        default=None,
         metadata={"help": 'The input dir for the peft model'}
     )
     cache_dir: str = field(
@@ -594,12 +594,12 @@ def get_tokenizer(args, model):
             tokenizer=tokenizer,
             model=model,
         )
-    if isinstance(tokenizer, LlamaTokenizerFast):
+    # if isinstance(tokenizer, LlamaTokenizerFast):
         # LLaMA tokenizer may not have correct special tokens set.
         # Check and add them if missing to prevent them from being parsed into different tokens.
         # Note that these are present in the vocabulary.
         # Note also that `model.config.pad_token_id` is 0 which corresponds to `<unk>` token.
-        if tokenizer.eos_token_id != model.config.eos_token_id or tokenizer.pad_token_id != model.config.pad_token_id or tokenizer.unk_token_id != model.config.unk_token_id:
+    if tokenizer.eos_token_id != model.config.eos_token_id or tokenizer.pad_token_id != model.config.pad_token_id or tokenizer.unk_token_id != model.config.unk_token_id:
             tokenizer.add_special_tokens(
                 {
                     "eos_token": tokenizer.convert_ids_to_tokens(model.config.eos_token_id),

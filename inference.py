@@ -25,7 +25,8 @@ m = AutoModelForCausalLM.from_pretrained(
     device_map={"":0}
 )
 
-m = PeftModel.from_pretrained(m, adapters_name)
+if adapters_name:
+    m = PeftModel.from_pretrained(m, adapters_name)
 
 tok = get_tokenizer(args, m)
 tok.bos_token_id = 1
@@ -299,4 +300,4 @@ with gr.Blocks(
 
 demo.queue(max_size=128, concurrency_count=2)
 
-demo.launch(server_name='0.0.0.0')
+demo.launch()
