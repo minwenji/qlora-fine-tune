@@ -26,7 +26,6 @@ from transformers import (
     BitsAndBytesConfig,
     LlamaTokenizerFast,
     LlamaTokenizer
-
 )
 from datasets import load_dataset
 import evaluate
@@ -57,6 +56,10 @@ class ModelArguments:
     trust_remote_code: Optional[bool] = field(
         default=False,
         metadata={"help": "Enable unpickling of arbitrary code in AutoModelForCausalLM#from_pretrained."}
+    )
+    llama: bool = field(
+        default=False,
+        metadata={"help": "Whether to use LlamaTokenizer."}
     )
 
 @dataclass
@@ -583,12 +586,21 @@ def get_last_checkpoint(checkpoint_dir):
 
 def get_tokenizer(args, model):
     # Tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(
-        args.model_name_or_path,
-        cache_dir=args.cache_dir,
-        padding_side="right",
-        use_fast=True,
-    )
+    if args.llama:
+        tokenizer = LlamaTokenizer.from_pretrained(
+            args.model_name_or_path,
+            cache_dir=args.cache_dir,
+            padding_side="right",
+            use_fast=True,
+        )
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(
+            args.model_name_or_path,
+            cache_dir=args.cache_dir,
+            padding_side="right",
+            use_fast=True,
+        )
+
     if tokenizer._pad_token is None:
         smart_tokenizer_and_embedding_resize(
             special_tokens_dict=dict(pad_token=DEFAULT_PAD_TOKEN),
