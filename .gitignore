@@ -1,6 +1,7 @@
 # Output directories
 output/
 merged_models/
+cache/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
