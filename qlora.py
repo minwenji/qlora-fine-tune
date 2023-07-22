@@ -24,7 +24,8 @@ from transformers import (
     set_seed, 
     Seq2SeqTrainer,
     BitsAndBytesConfig,
-    LlamaTokenizerFast
+    LlamaTokenizerFast,
+    LlamaTokenizer
 
 )
 from datasets import load_dataset
