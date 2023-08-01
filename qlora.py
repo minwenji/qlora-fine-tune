@@ -267,6 +267,9 @@ def get_accelerate_model(args, checkpoint_dir):
 
     if args.full_finetune: assert args.bits in [16, 32]
 
+    from huggingface_hub import login
+    login(token="HUGGINGFACE_TOKEN", add_to_git_credential=True)
+
     print(f'loading base model {args.model_name_or_path}...')
     compute_dtype = (torch.float16 if args.fp16 else (torch.bfloat16 if args.bf16 else torch.float32))
     model = AutoModelForCausalLM.from_pretrained(
