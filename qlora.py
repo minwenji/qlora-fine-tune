@@ -615,12 +615,15 @@ def get_tokenizer(args, model):
         # Check and add them if missing to prevent them from being parsed into different tokens.
         # Note that these are present in the vocabulary.
         # Note also that `model.config.pad_token_id` is 0 which corresponds to `<unk>` token.
+        from collections.abc import Iterable
         if tokenizer.eos_token_id != model.config.eos_token_id or tokenizer.pad_token_id != model.config.pad_token_id or tokenizer.unk_token_id != model.config.unk_token_id:
             tokenizer.add_special_tokens(
                 {
                     "eos_token": tokenizer.convert_ids_to_tokens(model.config.eos_token_id),
                     "bos_token": tokenizer.convert_ids_to_tokens(model.config.bos_token_id),
-                    "unk_token": tokenizer.convert_ids_to_tokens(model.config.pad_token_id),
+                    "unk_token": tokenizer.convert_ids_to_tokens(
+                        model.config.pad_token_id if isinstance(model.config.pad_token_id, Iterable) else tokenizer.pad_token_id
+                    ),
                 }
             )
 
